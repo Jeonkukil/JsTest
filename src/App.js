@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useMemo,useEffect, useRef, useState } from "react";
 import "./App.css";
 import DiaryEditor from "./DiaryEditor";
 import DiaryList from "./DiaryList";
@@ -57,16 +57,21 @@ const App = () => {
     );
   };
 
-  const getDiaryAnalysis = () => {
-    console.log('일기 분석 시작');
+  const getDiaryAnalysis = useMemo(
+    () => {
+      console.log('일기 분석 시작');
+  
+      const goodCount = data.filter((it) => it.emotion >= 3).length;
+      const badCount = data.length - goodCount;
+      const goodRatio = (goodCount / data.length) * 100;
+      /// 메모이제이션 useMemo
+      return {goodCount, badCount, goodRatio};
+    }, [data.length]
+  );
 
-    const goodCount = data.filter((it) => it.emotion >= 3).length;
-    const badCount = data.length - goodCount;
-    const goodRatio = (goodCount / data.length) * 100;
-    return {goodCount, badCount, goodRatio};
-  }
+  /// useMemo 최적화 getDiaryAnalysis가 아무리 호출해도 길이가 변하지 않으면 호출하지 않음
 
-  const {goodCount, badCount, goodRatio} = getDiaryAnalysis();
+  const {goodCount, badCount, goodRatio} = getDiaryAnalysis;
 
   return (
     <div className="App">

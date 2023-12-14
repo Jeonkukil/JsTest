@@ -1,4 +1,4 @@
-import { useMemo,useEffect, useRef, useState } from "react";
+import { useMemo, useEffect, useRef, useState, useCallback } from "react";
 import "./App.css";
 import DiaryEditor from "./DiaryEditor";
 import DiaryList from "./DiaryList";
@@ -19,7 +19,7 @@ const App = () => {
         content: it.body,
         emotion: Math.floor(Math.random() * 5) + 1,
         created_date: new Date().getTime() + 1,
-        id: dataId.current++
+        id: dataId.current++,
       };
     });
 
@@ -32,46 +32,42 @@ const App = () => {
     }, 1500);
   }, []);
 
-  const onCreate = (author, content, emotion) => {
+  const onCreate = useCallback((author, content, emotion) => {
     const created_date = new Date().getTime();
     const newItem = {
       author,
       content,
       emotion,
       created_date,
-      id: dataId.current
+      id: dataId.current,
     };
     dataId.current += 1;
-    setData([newItem, ...data]);
-  };
+    setData((data) => [newItem, ...data]);
+  }, []);
 
-  const onRemove = (targetId) => {
-    const newDiaryList = data.filter((it) => it.id !== targetId);
-    setData(newDiaryList);
-  };
+  const onRemove = useCallback((targetId) => {
+    setData((data) => data.filter((it) => it.id !== targetId));
+  }, []);
 
-  const onEdit = (targetId, newContent) => {
-    setData(
+  const onEdit = useCallback((targetId, newContent) => {
+    setData((data) =>
       data.map((it) =>
         it.id === targetId ? { ...it, content: newContent } : it
       )
     );
-  };
+  }, []);
 
-  const getDiaryAnalysis = useMemo(
-    () => {
-  
-      const goodCount = data.filter((it) => it.emotion >= 3).length;
-      const badCount = data.length - goodCount;
-      const goodRatio = (goodCount / data.length) * 100;
-      /// 메모이제이션 useMemo
-      return {goodCount, badCount, goodRatio};
-    }, [data.length]
-  );
+  const getDiaryAnalysis = useMemo(() => {
+    const goodCount = data.filter((it) => it.emotion >= 3).length;
+    const badCount = data.length - goodCount;
+    const goodRatio = (goodCount / data.length) * 100;
+    /// 메모이제이션 useMemo
+    return { goodCount, badCount, goodRatio };
+  }, [data.length]);
 
   /// useMemo 최적화 getDiaryAnalysis가 아무리 호출해도 길이가 변하지 않으면 호출하지 않음
 
-  const {goodCount, badCount, goodRatio} = getDiaryAnalysis;
+  const { goodCount, badCount, goodRatio } = getDiaryAnalysis;
 
   return (
     <div className="App">
